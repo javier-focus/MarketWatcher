@@ -1,0 +1,5 @@
+.DS_Store
+build/*
+MarketWatcher/.DS_Store
+MarketWatcher/.build/*
+MarketWatcher/.swiftpm/*

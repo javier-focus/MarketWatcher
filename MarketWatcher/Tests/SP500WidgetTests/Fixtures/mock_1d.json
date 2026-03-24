@@ -1,0 +1,21 @@
+{
+  "chart": {
+    "result": [
+      {
+        "meta": {
+          "regularMarketPrice": 5123.41,
+          "previousClose": 5098.20
+        },
+        "timestamp": [1742394600, 1742394900, 1742395200, 1742395500, 1742395800],
+        "indicators": {
+          "quote": [
+            {
+              "close": [5100.10, 5105.33, null, 5112.87, 5123.41]
+            }
+          ]
+        }
+      }
+    ],
+    "error": null
+  }
+}
