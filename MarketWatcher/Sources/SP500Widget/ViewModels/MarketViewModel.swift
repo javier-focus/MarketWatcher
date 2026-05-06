@@ -122,33 +122,35 @@ public final class MarketViewModel: ObservableObject {
         } catch SP500Error.rateLimited {
             isRefreshing = false
             state = .error(humanReadable(SP500Error.rateLimited))
-            scheduleRefresh(isRateLimited: true)
+            scheduleRefresh(isRateLimited: true, isError: false)
         } catch {
             isRefreshing = false
             state = .error(humanReadable(error))
-            scheduleRefresh(isRateLimited: false)
+            scheduleRefresh(isRateLimited: false, isError: true)
         }
     }
 
     // MARK: - Auto-refresh
 
-    private func scheduleRefresh(isRateLimited: Bool) {
+    private func scheduleRefresh(isRateLimited: Bool, isError: Bool = false) {
         refreshTask?.cancel()
 
-        let delayMinutes: Int
+        let delay: UInt64
         if isRateLimited {
             // Exponential back-off: 5 min → 10 min → 20 min, then capped.
-            delayMinutes = min(5 * (1 << consecutiveRateLimitErrors), 20)
+            let delayMinutes = min(5 * (1 << consecutiveRateLimitErrors), 20)
             consecutiveRateLimitErrors = min(consecutiveRateLimitErrors + 1, 2)
             print("[MarketViewModel] Rate limited (\(consecutiveRateLimitErrors)×). Retrying in \(delayMinutes) min.")
+            delay = UInt64(delayMinutes) * 60_000_000_000
+        } else if isError {
+            delay = 30_000_000_000  // 30 s — recover quickly from transient network errors
         } else {
-            delayMinutes = 5   // 5 min for all indexes, intervals, and market states
+            delay = 5 * 60_000_000_000  // 5 min normal refresh
         }
-
-        let delay = UInt64(delayMinutes) * 60_000_000_000
         refreshTask = Task { [weak self] in
             try? await Task.sleep(nanoseconds: delay)
             guard !Task.isCancelled, let self else { return }
+            self.refreshTask = nil  // prevent load() from cancelling this task
             await self.load()
         }
     }
