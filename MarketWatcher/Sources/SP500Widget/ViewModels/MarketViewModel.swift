@@ -157,6 +157,14 @@ public final class MarketViewModel: ObservableObject {
 
     // MARK: - Human-readable error messages
 
+    private func isBeforeMarketOpen() -> Bool {
+        let cal    = Calendar.etCalendar
+        let now    = Date()
+        let hour   = cal.component(.hour,   from: now)
+        let minute = cal.component(.minute, from: now)
+        return hour < 9 || (hour == 9 && minute < 30)
+    }
+
     private func humanReadable(_ error: Error) -> String {
         switch error as? SP500Error {
         case .rateLimited:
@@ -167,6 +175,9 @@ public final class MarketViewModel: ObservableObject {
             // BTC trades 24/7 — "market closed" makes no sense for it.
             if selectedIndex.tradesAroundTheClock {
                 return "No data available for this period."
+            }
+            if selectedInterval == .oneDay && isBeforeMarketOpen() {
+                return "Market opens at 9:30 AM ET. Data will appear once trading begins."
             }
             return "Market is closed. Data will refresh when trading resumes."
         case .emptyData:

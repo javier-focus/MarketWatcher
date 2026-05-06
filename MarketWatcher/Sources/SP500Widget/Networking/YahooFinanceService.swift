@@ -43,11 +43,11 @@ private struct YahooMeta: Decodable {
 }
 
 private struct YahooIndicators: Decodable {
-    let quote: [YahooQuote]
+    let quote: [YahooQuote]?
 }
 
 private struct YahooQuote: Decodable {
-    let close: [Double?]
+    let close: [Double?]?
 }
 
 // MARK: - Service
@@ -154,7 +154,7 @@ public actor YahooFinanceService {
         }
 
         let timestamps = result.timestamp ?? []
-        let closes     = result.indicators.quote.first?.close ?? []
+        let closes     = result.indicators.quote?.first?.close ?? []
 
         // Zip timestamps with closes and drop any null close values.
         let points: [PricePoint] = zip(timestamps, closes).compactMap { ts, close in
